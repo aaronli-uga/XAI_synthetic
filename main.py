@@ -2,7 +2,7 @@
 Author: Qi7
 Date: 2022-06-26 23:18:49
 LastEditors: aaronli-uga ql61608@uga.edu
-LastEditTime: 2022-06-27 00:59:59
+LastEditTime: 2022-06-27 06:25:52
 Description: 
 '''
 
@@ -31,7 +31,7 @@ y = data[:, -1] # label
 
 # %%
 siamese_dataset = SiameseNetworkDataset(data)
-my_dataloader = DataLoader(siamese_dataset, shuffle=True, batch_size=256)
+my_dataloader = DataLoader(siamese_dataset, shuffle=True, batch_size=32)
 
 example_batch = next(iter(my_dataloader))
 
