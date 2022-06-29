@@ -2,7 +2,7 @@
 Author: Qi7
 Date: 2022-06-26 23:18:49
 LastEditors: aaronli-uga ql61608@uga.edu
-LastEditTime: 2022-06-27 09:00:31
+LastEditTime: 2022-06-27 10:34:28
 Description: 
 '''
 
@@ -19,6 +19,8 @@ from data_loader import SiameseNetworkDataset
 from models import LSTM
 from customized_criterion import ContrastiveLoss
 from torchinfo import summary
+from sklearn.model_selection import train_test_split
+from torch.nn import functional as F
 # from torchinfo import summary
 # from training import train_loop, eval_loop
 # from MQTT_dataloader import MQTTLoader, load_file
@@ -34,11 +36,15 @@ with open(data_path, 'rb') as f:
 x = data[:, :data.shape[1]-1]  # data
 y = data[:, -1] # label
 
+X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.20, random_state=42)
+
+training_set = np.concatenate((X_train, y_train.reshape(-1,1)) ,axis=1)
+test_set = np.concatenate((X_test, y_test.reshape(-1,1)) ,axis=1)
 
 # %%
 batch_size = 64
-siamese_dataset = SiameseNetworkDataset(data)
-my_dataloader = DataLoader(siamese_dataset, shuffle=True, batch_size=batch_size)
+train_siamese_dataset = SiameseNetworkDataset(training_set)
+my_train_dataloader = DataLoader(train_siamese_dataset, shuffle=True, batch_size=batch_size)
 
 
 # example_batch = next(iter(my_dataloader))
@@ -58,6 +64,7 @@ criterion = ContrastiveLoss()
 optimizer = optim.Adam(model.parameters(), lr = Lr)
 
 # %%
+model.train()
 counter = []
 loss_history = [] 
 iteration_number= 0
@@ -65,7 +72,7 @@ iteration_number= 0
 for epoch in range(100):
     
     # Iterate over batches
-    for i, (s1, s2, label) in enumerate(my_dataloader, 0):
+    for i, (s1, s2, label) in enumerate(my_train_dataloader, 0):
 
         # Send the signals to devce(cpu or cuda)
 
@@ -90,4 +97,28 @@ for epoch in range(100):
 
 plt.plot(counter, loss_history)
 plt.show()
+
+# %% Test phase
+
+model.eval()
+batch_size = 1
+test_siamese_dataset = SiameseNetworkDataset(test_set)
+my_test_dataloader = DataLoader(test_siamese_dataset, shuffle=True, batch_size=batch_size)
+
+# Grab one signal that we are going to test
+dataiter = iter(my_test_dataloader)
+x0, _, label0 = next(dataiter)
+
+for i in range(10):
+    _, x1, label1 = next(dataiter)
+    output1, output2 = model(x0.view(x0.shape[0], 1, -1).float().to(device), x1.view(x0.shape[0], 1, -1).float().to(device))
+    euclidean_distance = F.pairwise_distance(output1, output2)
+    # print(label2)
+    plt.plot(x0.detach().numpy().reshape(-1))
+    plt.show()
+    print(f"Similarity between: {euclidean_distance.item():.2f}")
+    print(f"x0 label: {label0.item()}, x1 label:{label1.item()}")
+    plt.plot(x1.detach().numpy().reshape(-1))
+    plt.show()
+
 # %%
