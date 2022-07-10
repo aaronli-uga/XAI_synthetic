@@ -2,8 +2,8 @@
 Author: Qi7
 Date: 2022-07-05 16:06:18
 LastEditors: aaronli-uga ql61608@uga.edu
-LastEditTime: 2022-07-05 17:07:56
-Description: 
+LastEditTime: 2022-07-09 22:04:31
+Description: Generate synthetic data with different phase shift and amplitude
 '''
 #%%
 import numpy as np
