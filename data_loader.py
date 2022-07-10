@@ -2,7 +2,7 @@
 Author: Qi7
 Date: 2022-06-26 23:36:09
 LastEditors: aaronli-uga ql61608@uga.edu
-LastEditTime: 2022-06-27 00:55:06
+LastEditTime: 2022-07-09 21:39:11
 Description: 
 '''
 import random
@@ -32,7 +32,7 @@ class SiameseNetworkDataset(Dataset):
                 if int(s0_tuple[-1]) != int(s1_tuple[-1]):
                     break
         
-        return s0_tuple[:-1], s1_tuple[:-1], torch.from_numpy(np.array([int(s0_tuple[-1] != s1_tuple[-1])], dtype=np.float32))
+        return s0_tuple[:-1], s1_tuple[:-1], s0_tuple[-1], s1_tuple[-1], torch.from_numpy(np.array([int(s0_tuple[-1] != s1_tuple[-1])], dtype=np.float32))
     
     def __len__(self):
         return len(self.data)

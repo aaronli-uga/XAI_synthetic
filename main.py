@@ -2,7 +2,7 @@
 Author: Qi7
 Date: 2022-06-26 23:18:49
 LastEditors: aaronli-uga ql61608@uga.edu
-LastEditTime: 2022-06-27 10:34:28
+LastEditTime: 2022-07-09 21:55:32
 Description: 
 '''
 
@@ -29,12 +29,16 @@ from torch.nn import functional as F
 
 ###### loading data ######
 # normal: 0, scan_A: 1, scan_sU: 2, sparta: 3, mqtt_bruteforce: 4 
-data_path = "synthetic_dataset.npy"
+# data_path = "synthetic_dataset.npy"
+data_path = "synthetic_dataset_ps.npy"
 with open(data_path, 'rb') as f:
     data = np.load(f)
 
 x = data[:, :data.shape[1]-1]  # data
 y = data[:, -1] # label
+
+# normalization on input data x
+x = (x - x.mean(axis=0)) / x.std(axis=0) 
 
 X_train, X_test, y_train, y_test = train_test_split(x, y, test_size=0.20, random_state=42)
 
@@ -72,7 +76,7 @@ iteration_number= 0
 for epoch in range(100):
     
     # Iterate over batches
-    for i, (s1, s2, label) in enumerate(my_train_dataloader, 0):
+    for i, (s1, s2, _, _, label) in enumerate(my_train_dataloader, 0):
 
         # Send the signals to devce(cpu or cuda)
 
@@ -107,10 +111,10 @@ my_test_dataloader = DataLoader(test_siamese_dataset, shuffle=True, batch_size=b
 
 # Grab one signal that we are going to test
 dataiter = iter(my_test_dataloader)
-x0, _, label0 = next(dataiter)
+# x0, _, label0 = next(dataiter)
 
 for i in range(10):
-    _, x1, label1 = next(dataiter)
+    x0, x1, label0, label1, _ = next(dataiter)
     output1, output2 = model(x0.view(x0.shape[0], 1, -1).float().to(device), x1.view(x0.shape[0], 1, -1).float().to(device))
     euclidean_distance = F.pairwise_distance(output1, output2)
     # print(label2)
